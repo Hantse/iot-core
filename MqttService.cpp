@@ -39,6 +39,7 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
+  Serial.println("");
   String topicAsString = String((char *)topic);
   String deviceIdAsString = String(deviceId);
   if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/update/") == 1)
