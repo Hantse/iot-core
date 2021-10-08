@@ -89,3 +89,66 @@ void loop()
   delay(15000);
 }
 ```
+
+``` cpp
+#include <ArduinoJson.h>
+
+#include "Arduino.h"
+#include "LocalCommandHandler.h"
+#include "CameraHandler.h"
+
+#define FLASH_LIGHT 4
+
+CameraHandler* cameraHandler;
+int FRONT_LED = 2;
+int BACK_LED = 14;
+
+LocalCommandHandler::LocalCommandHandler(char* deviceName){
+  cameraHandler = new CameraHandler("192.168.1.131", deviceName);
+  cameraHandler->setup();
+
+  pinMode (FRONT_LED, OUTPUT);
+  pinMode (BACK_LED, OUTPUT);
+  pinMode (FLASH_LIGHT, OUTPUT);
+
+}
+
+void LocalCommandHandler::handleCommand(char* topic, byte* message, unsigned int length){
+  Serial.println("Message receive from handler.");
+  char json[1024];
+  DynamicJsonDocument jsonDoc(1024);
+
+  for (int i=0;i<length;i++) {
+    json[i] = ((char)message[i]);
+  }
+  
+  Serial.println("");
+  deserializeJson(jsonDoc, json);
+  const char* commandName = jsonDoc["command"];
+  String command = String(commandName);
+  Serial.println(commandName);
+  if(command.indexOf("CaptureCamera") > -1){
+    cameraHandler->captureAndUpload();
+  }else if(command.indexOf("flash") > -1){
+    int commandValue = jsonDoc["value"];
+    this->switchFlashLight(commandValue);
+  }else if(command.indexOf("light") > -1){
+    const char* commandBind = jsonDoc["bind"];
+    String bind = String(commandBind);
+    int commandValue = jsonDoc["value"];
+    this->switchLight(bind, commandValue);
+  }
+}
+
+void LocalCommandHandler::switchLight(String bind, int value){
+  if(bind.indexOf("back") > -1){
+    digitalWrite(BACK_LED, value);
+  }else{
+    digitalWrite(FRONT_LED, value);
+  }
+}
+
+void LocalCommandHandler::switchFlashLight(int value){
+    digitalWrite(FLASH_LIGHT, value);
+}
+```
