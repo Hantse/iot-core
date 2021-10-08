@@ -5,7 +5,6 @@
 #define Bootstrap_h
 
 #include "Arduino.h"
-#include "UpdateServer.h"
 #include "MqttService.h"
 #include "CommandHandler.h"
 
@@ -15,7 +14,6 @@ class Bootstrap
     Bootstrap(char* ssidInput, char* passwordInput, char* hostInput, char* mqttServerInput);
     void setup();
     void startMainProcess();
-    UpdateServer* updateServer;
     TaskHandle_t mainThread;
     MqttService* mqttService;
     void publishData(char* topic);

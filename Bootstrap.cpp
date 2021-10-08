@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include "Bootstrap.h"
-#include "UpdateServer.h"
 #include "MqttService.h"
 #include "CommandHandler.h"
 
@@ -48,10 +47,8 @@ void Bootstrap::generateHostname(){
 void Bootstrap::setup()
 {
   this->generateHostname();
-  // this->updateServer = new UpdateServer(host);
   this->mqttService = new MqttService(mqttServer, host);
   this->setupWifi();
-  // this->updateServer->setup();
   this->mqttService->setup();
 }
 
