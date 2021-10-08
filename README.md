@@ -152,3 +152,6 @@ void LocalCommandHandler::switchFlashLight(int value){
     digitalWrite(FLASH_LIGHT, value);
 }
 ```
+
+You can process command as you want by implement your own `void LocalCommandHandler::handleCommand(char* topic, byte* message, unsigned int length)`, this method 
+receive message from MQTT Server.
