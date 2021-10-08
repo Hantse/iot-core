@@ -1,11 +1,9 @@
 # iot-core
 
 ## TODO
-
 - [ ] Implement voltage handler
 
 ### Basic usage
-
 ``` cpp
 #include <Bootstrap.h>
 #include <ESP.h>
