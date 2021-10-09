@@ -28,7 +28,7 @@ MqttService::MqttService(char *mqttServerInput, char *deviceIdInput)
 
 void MqttService::setup()
 {
-  mqttClient.setKeepAlive(5);
+  mqttClient.setKeepAlive(2);
   mqttClient.setCallback(callback);
   mqttClient.setServer(mqttServer, 1883);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -44,7 +44,18 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
   String deviceIdAsString = String(deviceId);
   if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/update/") == 1)
   {
-    otaUpdateService.update(topicAsString, 6001);
+    char json[1024];
+    DynamicJsonDocument jsonDoc(1024);
+    for (int i = 0; i < length; i++)
+    {
+      json[i] = ((char)message[i]);
+    }
+    deserializeJson(jsonDoc, json);
+    
+    String uri = jsonDoc["uri"];
+    int port = jsonDoc["port"];
+
+    otaUpdateService.update(uri, port);
   }
   else if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/identify") == 1)
   {
