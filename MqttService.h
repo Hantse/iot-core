@@ -25,6 +25,7 @@ private:
   static void callback(char *topic, byte *message, unsigned int length);
   void reconnect();
   void registerToTopic(String topic);
+  static void handleUpdate(byte *message, unsigned int length);
   static void handleIdentify(byte *message, unsigned int length);
   static void handleVoltage();
   static void handleBoardInformations();

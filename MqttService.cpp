@@ -44,18 +44,7 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
   String deviceIdAsString = String(deviceId);
   if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/update/") == 1)
   {
-    char json[1024];
-    DynamicJsonDocument jsonDoc(1024);
-    for (int i = 0; i < length; i++)
-    {
-      json[i] = ((char)message[i]);
-    }
-    deserializeJson(jsonDoc, json);
-    
-    String uri = jsonDoc["uri"];
-    int port = jsonDoc["port"];
-
-    otaUpdateService.update(uri, port);
+    handleUpdate(message, length);
   }
   else if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/identify") == 1)
   {
@@ -76,6 +65,21 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
       commandHandler->handleCommand(topic, message, length);
     }
   }
+}
+
+void MqttService::handleUpdate(byte *message, unsigned int length){
+    char json[1024];
+    DynamicJsonDocument jsonDoc(1024);
+    for (int i = 0; i < length; i++)
+    {
+      json[i] = ((char)message[i]);
+    }
+    deserializeJson(jsonDoc, json);
+
+    String uri = jsonDoc["uri"];
+    int port = jsonDoc["port"];
+
+    otaUpdateService.update(uri, port);
 }
 
 void MqttService::handleBoardInformations()
