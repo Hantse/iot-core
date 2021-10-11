@@ -42,7 +42,7 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
   Serial.println("");
   String topicAsString = String((char *)topic);
   String deviceIdAsString = String(deviceId);
-  if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/update/") == 1)
+  if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/update") == 1)
   {
     handleUpdate(message, length);
   }
@@ -79,7 +79,7 @@ void MqttService::handleUpdate(byte *message, unsigned int length){
     String uri = jsonDoc["uri"];
     int port = jsonDoc["port"];
 
-    otaUpdateService.update(uri, port);
+    otaUpdateService.update(uri, port, deviceId, &mqttClient);
 }
 
 void MqttService::handleBoardInformations()
@@ -133,7 +133,7 @@ void MqttService::reconnect()
       {
         this->registerToTopic("esp32");
         this->registerToTopic("mqtt/device/ping");
-        this->registerToTopic("mqtt/device/" + deviceIdAsString + "/update/*");
+        this->registerToTopic("mqtt/device/" + deviceIdAsString + "/update");
         this->registerToTopic("mqtt/device/" + deviceIdAsString + "/commands/*");
         this->registerToTopic("mqtt/device/" + deviceIdAsString + "/identify");
         this->registerToTopic("mqtt/device/" + deviceIdAsString + "/voltage");

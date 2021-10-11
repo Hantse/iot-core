@@ -72,7 +72,7 @@ void Bootstrap::setupWifi(){
 
 void Bootstrap::startMainProcess()
 {
-  xTaskCreatePinnedToCore(this->singleProcess, "MainThread", 50000, this, 1, &mainThread, 0);
+  xTaskCreatePinnedToCore(this->singleProcess, "MainThread", 50000, this, 1, &mainThread, 1);
 }
 
 void Bootstrap::singleProcess(void *pvParameters)

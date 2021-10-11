@@ -5,16 +5,13 @@
 #define OtaService_h
 
 #include "Arduino.h"
+#include <PubSubClient.h>
 
 class OtaService
 {
   public: 
     OtaService();
-    void update(String url, int port);
-  private:
-    String getHeaderValue(String header, String headerName);
-    String getBinName(String url);
-    String getHostName(String url);
+    void update(String url, int port, char* deviceId, PubSubClient *mqttClient);
 };
 
 #endif
