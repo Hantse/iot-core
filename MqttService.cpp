@@ -98,8 +98,8 @@ void MqttService::handleBoardInformations()
 
 void MqttService::handleVoltage()
 {
-  float batteryLevel = map(3.5, 0.0f, 4095.0f, 0, 100);
-  publishData("data/voltage", batteryLevel);
+  int sensorValue = analogRead(13);
+  publishData("data/voltage", sensorValue);
 }
 
 void MqttService::handleIdentify(byte *message, unsigned int length)
