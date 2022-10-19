@@ -11,7 +11,9 @@
 class Bootstrap
 {
   public:
+    Bootstrap();
     Bootstrap(char* ssidInput, char* passwordInput, char* hostInput, char* mqttServerInput);
+    void setConfiguration(char* ssidInput, char* passwordInput, char* hostInput, char* mqttServerInput);
     void setup();
     void startMainProcess();
     TaskHandle_t mainThread;

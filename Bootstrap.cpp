@@ -13,8 +13,13 @@ static char ip[40];
 static char mqttServer[80];
 static esp_chip_info_t chip_info;
 
+Bootstrap::Bootstrap()
+{
+  Serial.begin(115200);
+  esp_chip_info(&chip_info);
+}
 
-Bootstrap::Bootstrap(char* ssidInput, char* passwordInput, char* hostInput, char* mqttServerInput)
+Bootstrap::Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput)
 {
   Serial.begin(115200);
   esp_chip_info(&chip_info);
@@ -24,15 +29,26 @@ Bootstrap::Bootstrap(char* ssidInput, char* passwordInput, char* hostInput, char
   strcpy(mqttServer, mqttServerInput);
 }
 
-String Bootstrap::getDeviceName(){
+void Bootstrap::setConfiguration(char* ssidInput, char* passwordInput, char* hostInput, char* mqttServerInput)
+{
+  strcpy(ssid, ssidInput);
+  strcpy(password, passwordInput);
+  strcpy(host, hostInput);
+  strcpy(mqttServer, mqttServerInput);
+}
+
+String Bootstrap::getDeviceName()
+{
   return String(host);
 }
 
-char* Bootstrap::getDeviceNameAsChar(){
+char *Bootstrap::getDeviceNameAsChar()
+{
   return host;
 }
 
-void Bootstrap::generateHostname(){
+void Bootstrap::generateHostname()
+{
   String chipId = String((uint32_t)ESP.getEfuseMac(), HEX);
   chipId.toUpperCase();
   String hostAsString = String(host);
@@ -41,7 +57,7 @@ void Bootstrap::generateHostname(){
   hostnameWithId.toCharArray(hostnameBuffer, 50);
   strcpy(host, hostnameBuffer);
   Serial.print("Generated hostname : ");
-  Serial.println(host);   
+  Serial.println(host);
 }
 
 void Bootstrap::setup()
@@ -52,10 +68,11 @@ void Bootstrap::setup()
   this->mqttService->setup();
 }
 
-void Bootstrap::setupWifi(){
+void Bootstrap::setupWifi()
+{
   WiFi.begin(ssid, password);
   Serial.println("");
-  
+
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
@@ -90,19 +107,23 @@ void Bootstrap::singleProcess(void *pvParameters)
   }
 }
 
-void Bootstrap::setHandler(CommandHandler* handler){
+void Bootstrap::setHandler(CommandHandler *handler)
+{
   Serial.println("Set Handler in Bootstrap");
   this->mqttService->setHandler(handler);
 }
 
-void Bootstrap::publishData(char* topic){
+void Bootstrap::publishData(char *topic)
+{
   this->mqttService->publishData(topic);
 }
 
-void Bootstrap::publishData(char* topic, char* dataInput){
+void Bootstrap::publishData(char *topic, char *dataInput)
+{
   this->mqttService->publishData(topic, dataInput);
 }
 
-void Bootstrap::publishData(char* topic, uint8_t* dataInput){
+void Bootstrap::publishData(char *topic, uint8_t *dataInput)
+{
   this->mqttService->publishData(topic, dataInput);
 }
