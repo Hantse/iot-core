@@ -9,8 +9,8 @@
 class CommandHandler
 {
 public:
-    virtual ~CommandHandler(){}
-    virtual void handleCommand(char* topic, byte* message, unsigned int length);
+	virtual ~CommandHandler() {}
+	virtual void handleCommand(char *topic, byte *message, unsigned int length);
 };
 
 #endif
