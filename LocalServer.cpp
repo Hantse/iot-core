@@ -23,10 +23,22 @@ void LocalServer::startServer()
     IPAddress IP = WiFi.softAPIP();
     Serial.print("AP IP address: ");
     Serial.println(IP);
+
+    server.on("/", handleOnConnect);
+
     server.begin();
+    Serial.println("HTTP server started");
 }
 
 void LocalServer::handleClient()
 {
     server.handleClient();
+}
+
+void LocalServer::handleOnConnect()
+{
+    LED1status = LOW;
+    LED2status = LOW;
+    Serial.println("GPIO4 Status: OFF | GPIO5 Status: OFF");
+    server.send(200, "text/html", SendHTML(LED1status, LED2status));
 }

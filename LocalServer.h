@@ -15,7 +15,7 @@ public:
   void handleClient();
 
 private:
-  
+  void handleOnConnect();
 };
 
 #endif
