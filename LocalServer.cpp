@@ -1,11 +1,10 @@
 #include "Arduino.h"
 #include "LocalServer.h"
 #include <WiFi.h>
-#include <WebServer.h>
 
 static char ssid[60];
 static char password[60];
-static WiFiServer server(80);
+static WebServer server(80);
 
 LocalServer::LocalServer()
 {
