@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "LocalServer.h"
 #include <WiFi.h>
+#include <WebServer.h>
 
 static char ssid[60];
 static char password[60];
@@ -37,8 +38,6 @@ void LocalServer::handleClient()
 
 void LocalServer::handleOnConnect()
 {
-    LED1status = LOW;
-    LED2status = LOW;
     Serial.println("GPIO4 Status: OFF | GPIO5 Status: OFF");
-    server.send(200, "text/html", SendHTML(LED1status, LED2status));
+    server.send(200, "text/html", "");
 }
