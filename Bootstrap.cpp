@@ -15,14 +15,20 @@ static char ip[40];
 static char mqttServer[80];
 static esp_chip_info_t chip_info;
 
-static LocalServer localServer;
-
 Bootstrap::Bootstrap()
 {
   Serial.begin(115200);
-  EEPROM.begin(512); //Initialasing EEPROM
+  EEPROM.begin(512); // Initialasing EEPROM
   delay(10);
   esp_chip_info(&chip_info);
+}
+
+Bootstrap::Bootstrap(char *hostInput, char *mqttServerInput)
+{
+  Serial.begin(115200);
+  esp_chip_info(&chip_info);
+  strcpy(host, hostInput);
+  strcpy(mqttServer, mqttServerInput);
 }
 
 Bootstrap::Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput)
@@ -35,7 +41,7 @@ Bootstrap::Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char
   strcpy(mqttServer, mqttServerInput);
 }
 
-void Bootstrap::setConfiguration(char* ssidInput, char* passwordInput, char* hostInput, char* mqttServerInput)
+void Bootstrap::setConfiguration(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput)
 {
   strcpy(ssid, ssidInput);
   strcpy(password, passwordInput);
@@ -69,9 +75,19 @@ void Bootstrap::generateHostname()
 void Bootstrap::setup()
 {
   this->generateHostname();
-  this->mqttService = new MqttService(mqttServer, host);
-  this->setupWifi();
-  this->mqttService->setup();
+
+  int isConfigure = EEPROM.read(0);
+  if (isConfigure == 1)
+  {
+    this->mqttService = new MqttService(mqttServer, host);
+    this->setupWifi();
+    this->mqttService->setup();
+  }
+  else
+  {
+    this->localServer = new LocalServer("IOT-DEVICE-DEFAULT", "IotDevicePassword");
+    this->localServer->startServer();
+  }
 }
 
 void Bootstrap::setupWifi()
