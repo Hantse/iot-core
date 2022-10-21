@@ -5,7 +5,7 @@
 
 static char ssid[60];
 static char password[60];
-static WebServer server(80);
+WebServer server(80);
 
 LocalServer::LocalServer()
 {
