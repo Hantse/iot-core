@@ -6,6 +6,7 @@
 
 #include "Arduino.h"
 #include "MqttService.h"
+#include "LocalServer.h"
 #include "CommandHandler.h"
 
 class Bootstrap
