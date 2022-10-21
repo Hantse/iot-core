@@ -11,6 +11,7 @@ class LocalServer
 public:
   LocalServer();
   LocalServer(char* ssidInput, char* passwordInput);
+  void startServer();
 
 private:
   

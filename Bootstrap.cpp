@@ -4,6 +4,7 @@
 #include "CommandHandler.h"
 #include "LocalServer.h"
 
+#include <EEPROM.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 
@@ -19,6 +20,8 @@ static LocalServer localServer;
 Bootstrap::Bootstrap()
 {
   Serial.begin(115200);
+  EEPROM.begin(512); //Initialasing EEPROM
+  delay(10);
   esp_chip_info(&chip_info);
 }
 
