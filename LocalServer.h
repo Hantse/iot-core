@@ -9,6 +9,7 @@
 class LocalServer
 {
 public:
+  LocalServer();
   LocalServer(char* ssidInput, char* passwordInput);
 
 private:
