@@ -2,6 +2,7 @@
 #include "Bootstrap.h"
 #include "MqttService.h"
 #include "CommandHandler.h"
+#include "LocalServer.h"
 
 #include <WiFi.h>
 #include <WiFiClient.h>
@@ -12,6 +13,8 @@ static char host[60];
 static char ip[40];
 static char mqttServer[80];
 static esp_chip_info_t chip_info;
+
+static LocalServer localServer;
 
 Bootstrap::Bootstrap()
 {
