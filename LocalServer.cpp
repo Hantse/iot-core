@@ -3,9 +3,13 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
+IPAddress local_ip(192,168,1,4);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
+WebServer server(80);
+
 static char ssid[60];
 static char password[60];
-WebServer server(80);
 
 LocalServer::LocalServer()
 {
@@ -21,12 +25,9 @@ void LocalServer::startServer()
 {
     Serial.print("Setting AP (Access Point)…");
     WiFi.softAP(ssid, password);
-    IPAddress IP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(IP);
+    WiFi.softAPConfig(local_ip, gateway, subnet);
 
     server.on("/", handleOnConnect);
-
     server.begin();
     Serial.println("HTTP server started");
 }
