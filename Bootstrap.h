@@ -32,6 +32,7 @@ private:
 	void setupWifi();
 	void generateHostname();
 	static void singleProcess(void *pvParameters);
+	static void singleOnboardProcess(void *pvParameters);
 };
 
 #endif

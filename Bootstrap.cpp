@@ -77,15 +77,14 @@ void Bootstrap::setup()
 	this->generateHostname();
 
 	int isConfigure = EEPROM.read(0);
+	this->localServer = new LocalServer("IOT-DEVICE-DEFAULT", "IotDevicePassword");
+
 	if (isConfigure == 1)
 	{
 		this->mqttService = new MqttService(mqttServer, host);
 		this->setupWifi();
 		this->mqttService->setup();
-	}
-	else
-	{
-		this->localServer = new LocalServer("IOT-DEVICE-DEFAULT", "IotDevicePassword");
+	}else{
 		this->localServer->startServer();
 	}
 }
@@ -111,19 +110,41 @@ void Bootstrap::setupWifi()
 
 void Bootstrap::startMainProcess()
 {
-	xTaskCreatePinnedToCore(this->singleProcess, "MainThread", 50000, this, 1, &mainThread, 1);
+	int isConfigure = EEPROM.read(0);
+	if (isConfigure == 1)
+	{
+		xTaskCreatePinnedToCore(this->singleProcess, "MainThread", 50000, this, 1, &mainThread, 1);
+	}
+	else
+	{
+		xTaskCreatePinnedToCore(this->singleOnboardProcess, "MainThread", 50000, this, 1, &mainThread, 1);
+	}
+}
+
+void Bootstrap::singleOnboardProcess(void *pvParameters)
+{
+	Bootstrap *l_bootstrap = (Bootstrap *)pvParameters;
+	Serial.println("");
+	Serial.print("Main SDK Task (Onboarding) running on core ");
+	Serial.print(xPortGetCoreID());
+	Serial.println("");
+	for (;;)
+	{
+		l_bootstrap->localServer->handleClient();
+		delay(1);
+	}
 }
 
 void Bootstrap::singleProcess(void *pvParameters)
 {
 	Bootstrap *l_bootstrap = (Bootstrap *)pvParameters;
 	Serial.println("");
-	Serial.print("Main SDK Task running on core ");
+	Serial.print("Main SDK Task (Normal) running on core ");
 	Serial.print(xPortGetCoreID());
 	Serial.println("");
 	for (;;)
 	{
-		// l_bootstrap->updateServer->handleServerUpdate();
+		l_bootstrap->localServer->handleClient();
 		l_bootstrap->mqttService->handleMqttClient();
 		delay(1);
 	}

@@ -12,6 +12,7 @@ public:
   LocalServer();
   LocalServer(char* ssidInput, char* passwordInput);
   void startServer();
+  void handleClient();
 
 private:
   

@@ -25,3 +25,8 @@ void LocalServer::startServer()
     Serial.println(IP);
     server.begin();
 }
+
+void LocalServer::handleClient()
+{
+    server.handleClient();
+}
