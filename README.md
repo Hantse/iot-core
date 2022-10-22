@@ -28,6 +28,30 @@ void loop()
 }
 ```
 
+### Usage with portal for configuration
+``` cpp
+#include <Bootstrap.h>
+#include <ESP.h>
+
+Bootstrap bootStrap("BOARDNAME", "SERVERIP");
+
+void setup()
+{
+  Serial.setDebugOutput(true);
+  bootStrap.setup();
+  delay(500);
+  bootStrap.startMainProcess();
+}
+
+void loop()
+{
+  delay(1500);
+  Serial.print("Loop running on core ");
+  Serial.print(xPortGetCoreID());
+  Serial.println("");
+  delay(15000);
+}
+```
 
 ### Command handling
 
@@ -157,3 +181,10 @@ void LocalCommandHandler::switchFlashLight(int value){
 
 You can process command as you want by implement your own `void LocalCommandHandler::handleCommand(char* topic, byte* message, unsigned int length)`, this method 
 receive message from MQTT Server.
+
+
+## ESP32 Power Consumption
+
+| Device | Reference [mA] | Light-Sleep [mA]  |  Deep-Sleep [mA]  |  Hibernation [mA]  |
+|--------|----------------|-------------------|-------------------|--------------------|
+| ESP32  |      51        |        10         |        9          |         9          |
