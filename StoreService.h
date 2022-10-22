@@ -13,8 +13,9 @@ public:
     void setup();
     bool isConfigure();
     void storeConfiguration(String wifiSsid, String wifiPassword);
-    char* getWifiSsid();
-    char* getWifiPassword();
+    void clearStorage();
+    String getWifiSsid();
+    String getWifiPassword();
 };
 
 #endif

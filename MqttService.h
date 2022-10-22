@@ -6,11 +6,13 @@
 
 #include "Arduino.h"
 #include "CommandHandler.h"
+#include "StoreService.h"
 
 class MqttService
 {
 public:
   MqttService(char *mqttServerInput, char *deviceIdInput);
+  void injectStoreService(StoreService *storeServiceInjected);
   void setup();
   void handleMqttClient();
   static void publishData(char *topicInput);
@@ -29,6 +31,7 @@ private:
   static void handleIdentify(byte *message, unsigned int length);
   static void handleVoltage();
   static void handleBoardInformations();
+  static void handleReset();
 };
 
 #endif

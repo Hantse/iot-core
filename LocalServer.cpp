@@ -3,7 +3,6 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ArduinoJson.h>
-#include <EEPROM.h>
 #include "StoreService.h"
 
 static WebServer server(80);

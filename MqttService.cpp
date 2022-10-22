@@ -7,6 +7,7 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>
+#include "StoreService.h"
 
 #define LED_BUILTIN 33
 
@@ -16,7 +17,7 @@ static WiFiClient espClient;
 static OtaService otaUpdateService;
 static CommandHandler *commandHandler;
 static esp_chip_info_t chip_info;
-
+static StoreService *storeService;
 static PubSubClient mqttClient(espClient);
 
 MqttService::MqttService(char *mqttServerInput, char *deviceIdInput)
@@ -24,6 +25,11 @@ MqttService::MqttService(char *mqttServerInput, char *deviceIdInput)
   esp_chip_info(&chip_info);
   strcpy(mqttServer, mqttServerInput);
   strcpy(deviceId, deviceIdInput);
+}
+
+void MqttService::injectStoreService(StoreService *storeServiceInjected)
+{
+  storeService = storeServiceInjected;
 }
 
 void MqttService::setup()
@@ -58,6 +64,10 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
   {
     handleBoardInformations();
   }
+  else if (topicAsString.equals("mqtt/device/" + deviceIdAsString + "/reset") == 1)
+  {
+    handleReset();
+  }
   else
   {
     if (commandHandler != NULL)
@@ -67,19 +77,20 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
   }
 }
 
-void MqttService::handleUpdate(byte *message, unsigned int length){
-    char json[1024];
-    DynamicJsonDocument jsonDoc(1024);
-    for (int i = 0; i < length; i++)
-    {
-      json[i] = ((char)message[i]);
-    }
-    deserializeJson(jsonDoc, json);
+void MqttService::handleUpdate(byte *message, unsigned int length)
+{
+  char json[1024];
+  DynamicJsonDocument jsonDoc(1024);
+  for (int i = 0; i < length; i++)
+  {
+    json[i] = ((char)message[i]);
+  }
+  deserializeJson(jsonDoc, json);
 
-    String uri = jsonDoc["uri"];
-    int port = jsonDoc["port"];
+  String uri = jsonDoc["uri"];
+  int port = jsonDoc["port"];
 
-    otaUpdateService.update(uri, port, deviceId, &mqttClient);
+  otaUpdateService.update(uri, port, deviceId, &mqttClient);
 }
 
 void MqttService::handleBoardInformations()
@@ -91,9 +102,17 @@ void MqttService::handleBoardInformations()
   doc["features"] = chip_info.features;
   doc["revision"] = chip_info.revision;
   doc["spi_flash_size"] = spi_flash_get_chip_size();
-  
+
   serializeJson(doc, output);
   publishData("data/board", output);
+}
+
+void MqttService::handleReset()
+{
+  storeService->clearStorage();
+  publishData("data/reset", "true");
+  delay(2500);
+  ESP.restart();
 }
 
 void MqttService::handleVoltage()
@@ -138,6 +157,7 @@ void MqttService::reconnect()
         this->registerToTopic("mqtt/device/" + deviceIdAsString + "/identify");
         this->registerToTopic("mqtt/device/" + deviceIdAsString + "/voltage");
         this->registerToTopic("mqtt/device/" + deviceIdAsString + "/board");
+        this->registerToTopic("mqtt/device/" + deviceIdAsString + "/reset");
         this->publishData("data/ip", WiFi.localIP().toString());
       }
       else

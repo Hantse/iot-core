@@ -2,9 +2,10 @@
 #include "StoreService.h"
 #include "EEPROM.h"
 
+#define EEPROM_SIZE 1024
 #define IS_CONFIGURE_ADDRESS 0
-#define WIFI_SSID_ADDRESS 48
-#define WIFI_PASSWORD_ADDRESS 96
+#define WIFI_SSID_ADDRESS 100
+#define WIFI_PASSWORD_ADDRESS 200
 
 StoreService::StoreService()
 {
@@ -13,7 +14,6 @@ StoreService::StoreService()
 bool StoreService::isConfigure()
 {
     bool isConfigure = EEPROM.readBool(IS_CONFIGURE_ADDRESS);
-    Serial.println(isConfigure);
     if (!isConfigure)
     {
         EEPROM.writeBool(IS_CONFIGURE_ADDRESS, false);
@@ -31,28 +31,33 @@ void StoreService::storeConfiguration(String wifiSsid, String wifiPassword)
     EEPROM.commit();
 }
 
-char *StoreService::getWifiSsid()
+String StoreService::getWifiSsid()
 {
     String ssidAsString = EEPROM.readString(WIFI_SSID_ADDRESS);
-    char ssid[48];
-    ssidAsString.toCharArray(ssid, ssidAsString.length() + 1);
-    return ssid;
+    return ssidAsString;
 }
 
-char *StoreService::getWifiPassword()
+String StoreService::getWifiPassword()
 {
     String passwordAsString = EEPROM.readString(WIFI_PASSWORD_ADDRESS);
-    char password[48];
-    passwordAsString.toCharArray(password, passwordAsString.length() + 1);
-    return password;
+    return passwordAsString;
 }
 
 void StoreService::setup()
 {
-    if (!EEPROM.begin(1000))
+    if (!EEPROM.begin(EEPROM_SIZE))
     {
         Serial.println("Failed to initialise EEPROM");
         Serial.println("Restarting...");
         delay(1000);
     }
+}
+
+void StoreService::clearStorage()
+{
+    for (int i = 0; i < EEPROM_SIZE; i++)
+    {
+        EEPROM.write(i, 0);
+    }
+    EEPROM.commit();
 }

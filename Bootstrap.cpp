@@ -77,13 +77,13 @@ void Bootstrap::setup()
 	this->storeService = new StoreService();
 	this->localServer = new LocalServer("IOT-DEVICE-DEFAULT", "IotDevicePassword");
 	this->storeService->setup();
-	
+
 	if (this->storeService->isConfigure())
 	{
-		strcpy(ssid, this->storeService->getWifiSsid());
-		strcpy(password, this->storeService->getWifiPassword());
 		this->mqttService = new MqttService(mqttServer, host);
+		this->extractWifiCredentials();
 		this->setupWifi();
+		this->mqttService->injectStoreService(storeService);
 		this->mqttService->setup();
 	}
 	else
@@ -91,6 +91,15 @@ void Bootstrap::setup()
 		this->localServer->injectStoreService(storeService);
 		this->localServer->startServer();
 	}
+}
+
+void Bootstrap::extractWifiCredentials()
+{
+	String ssidAsString = this->storeService->getWifiSsid();
+	ssidAsString.toCharArray(ssid, ssidAsString.length() + 1);
+
+	String passwordAsString = this->storeService->getWifiPassword();
+	passwordAsString.toCharArray(password, passwordAsString.length() + 1);
 }
 
 void Bootstrap::setupWifi()

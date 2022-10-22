@@ -32,6 +32,7 @@ public:
 
 private:
 	void setupWifi();
+	void extractWifiCredentials();
 	void generateHostname();
 	void configureEeprom();
 	static void singleProcess(void *pvParameters);
