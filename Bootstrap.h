@@ -8,6 +8,7 @@
 #include "MqttService.h"
 #include "LocalServer.h"
 #include "CommandHandler.h"
+#include "StoreService.h"
 
 class Bootstrap
 {
@@ -27,10 +28,12 @@ public:
 	TaskHandle_t mainThread;
 	MqttService *mqttService;
 	LocalServer *localServer;
+	StoreService *storeService;
 
 private:
 	void setupWifi();
 	void generateHostname();
+	void configureEeprom();
 	static void singleProcess(void *pvParameters);
 	static void singleOnboardProcess(void *pvParameters);
 };

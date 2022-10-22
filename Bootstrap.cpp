@@ -4,7 +4,7 @@
 #include "CommandHandler.h"
 #include "LocalServer.h"
 
-#include <EEPROM.h>
+#include "EEPROM.h"
 #include <WiFi.h>
 #include <WiFiClient.h>
 
@@ -18,7 +18,6 @@ static esp_chip_info_t chip_info;
 Bootstrap::Bootstrap()
 {
 	Serial.begin(115200);
-	EEPROM.begin(512); // Initialasing EEPROM
 	delay(10);
 	esp_chip_info(&chip_info);
 }
@@ -75,16 +74,21 @@ void Bootstrap::generateHostname()
 void Bootstrap::setup()
 {
 	this->generateHostname();
-
-	int isConfigure = EEPROM.read(0);
+	this->storeService = new StoreService();
 	this->localServer = new LocalServer("IOT-DEVICE-DEFAULT", "IotDevicePassword");
-
-	if (isConfigure == 1)
+	this->storeService->setup();
+	
+	if (this->storeService->isConfigure())
 	{
+		strcpy(ssid, this->storeService->getWifiSsid());
+		strcpy(password, this->storeService->getWifiPassword());
 		this->mqttService = new MqttService(mqttServer, host);
 		this->setupWifi();
 		this->mqttService->setup();
-	}else{
+	}
+	else
+	{
+		this->localServer->injectStoreService(storeService);
 		this->localServer->startServer();
 	}
 }
