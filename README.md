@@ -1,7 +1,7 @@
 # iot-core
 
 ## TODO
-- [ ] Implement voltage handler
+- [x] Implement voltage handler
 
 ### Basic usage
 ``` cpp
