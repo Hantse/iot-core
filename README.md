@@ -184,6 +184,7 @@ receive message from MQTT Server.
 
 
 ## ESP32 Power Consumption
+https://www.of-things.de/battery-life-calculator.php
 
 | Device | Reference [mA] | Light-Sleep [mA]  |  Deep-Sleep [mA]  |  Hibernation [mA]  |
 |--------|----------------|-------------------|-------------------|--------------------|
