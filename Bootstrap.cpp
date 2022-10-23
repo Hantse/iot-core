@@ -13,12 +13,13 @@ static char password[60];
 static char host[60];
 static char ip[40];
 static char mqttServer[80];
+static int sleepTime = 15;
+
 static esp_chip_info_t chip_info;
 
 Bootstrap::Bootstrap()
 {
 	Serial.begin(115200);
-	delay(10);
 	esp_chip_info(&chip_info);
 }
 
@@ -74,8 +75,10 @@ void Bootstrap::generateHostname()
 void Bootstrap::setup()
 {
 	this->generateHostname();
+	this->sleepService->printWakeupReason();
 	this->storeService = new StoreService();
-	this->localServer = new LocalServer("IOT-DEVICE-DEFAULT", "IotDevicePassword");
+	this->sleepService = new SleepService(sleepTime);
+	this->localServer = new LocalServer(host, "IOT-DEVICE-DEFAULT", "IotDevicePassword");
 	this->storeService->setup();
 
 	if (this->storeService->isConfigure())
@@ -83,7 +86,32 @@ void Bootstrap::setup()
 		this->mqttService = new MqttService(mqttServer, host);
 		this->extractWifiCredentials();
 		this->setupWifi();
-		this->mqttService->injectStoreService(storeService);
+		this->mqttService->injectStoreService(storeService, sleepService);
+		this->mqttService->setup();
+	}
+	else
+	{
+		this->localServer->injectStoreService(storeService);
+		this->localServer->startServer();
+	}
+}
+
+void Bootstrap::setup(int timeToSleep)
+{
+	sleepTime = timeToSleep;
+	this->generateHostname();
+	this->sleepService->printWakeupReason();
+	this->storeService = new StoreService();
+	this->sleepService = new SleepService(sleepTime);
+	this->localServer = new LocalServer(host, "IOT-DEVICE-DEFAULT", "IotDevicePassword");
+	this->storeService->setup();
+
+	if (this->storeService->isConfigure())
+	{
+		this->mqttService = new MqttService(mqttServer, host);
+		this->extractWifiCredentials();
+		this->setupWifi();
+		this->mqttService->injectStoreService(storeService, sleepService);
 		this->mqttService->setup();
 	}
 	else
@@ -179,7 +207,19 @@ void Bootstrap::publishData(char *topic, char *dataInput)
 	this->mqttService->publishData(topic, dataInput);
 }
 
+void Bootstrap::publishData(char *topic, String dataInput)
+{
+	char dataInputAsChar[200];
+	dataInput.toCharArray(dataInputAsChar, dataInput.length() + 1);
+	this->mqttService->publishData(topic, dataInputAsChar);
+}
+
 void Bootstrap::publishData(char *topic, uint8_t *dataInput)
 {
 	this->mqttService->publishData(topic, dataInput);
+}
+
+void Bootstrap::startSleep()
+{
+	this->sleepService->startSleep();
 }

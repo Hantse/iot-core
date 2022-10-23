@@ -8,6 +8,7 @@
 static WebServer server(80);
 static char ssid[60];
 static char password[60];
+static char hostname[60];
 static DynamicJsonDocument doc(1024);
 static StoreService *storeService;
 
@@ -19,6 +20,13 @@ LocalServer::LocalServer(char *ssidInput, char *passwordInput)
 {
     strcpy(ssid, ssidInput);
     strcpy(password, passwordInput);
+}
+
+LocalServer::LocalServer(char *hostNameInput, char *ssidInput, char *passwordInput)
+{
+    strcpy(ssid, ssidInput);
+    strcpy(password, passwordInput);
+    strcpy(hostname, hostNameInput);
 }
 
 void LocalServer::injectStoreService(StoreService *storeServiceInjected)
@@ -95,5 +103,11 @@ void LocalServer::handleConfigure()
 
 void LocalServer::handleOnConnect()
 {
-    server.send(200, "text/html", "");
+    DynamicJsonDocument doc(1024);
+    doc["hostname"] = hostname;
+
+    String configAsString;
+    serializeJson(doc, configAsString);
+
+    server.send(200, "text/json", configAsString);
 }

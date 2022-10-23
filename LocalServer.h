@@ -12,6 +12,7 @@ class LocalServer
 public:
   LocalServer();
   LocalServer(char *ssidInput, char *passwordInput);
+  LocalServer(char *hostNameInput, char *ssidInput, char *passwordInput);
   void injectStoreService(StoreService *storeService);
   void startServer();
   void handleClient();

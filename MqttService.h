@@ -7,12 +7,13 @@
 #include "Arduino.h"
 #include "CommandHandler.h"
 #include "StoreService.h"
+#include "SleepService.h"
 
 class MqttService
 {
 public:
   MqttService(char *mqttServerInput, char *deviceIdInput);
-  void injectStoreService(StoreService *storeServiceInjected);
+  void injectStoreService(StoreService *storeServiceInjected, SleepService *sleepServiceInjected);
   void setup();
   void handleMqttClient();
   static void publishData(char *topicInput);
