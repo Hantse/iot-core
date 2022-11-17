@@ -3,6 +3,7 @@
 #include "MqttService.h"
 #include "CommandHandler.h"
 #include "LocalServer.h"
+#include "ESPNowHandler.h"
 
 #include "EEPROM.h"
 #include <WiFi.h>
@@ -150,6 +151,13 @@ void Bootstrap::setup(int timeToSleep)
 {
 	sleepTime = timeToSleep;
 	this->setup();
+}
+
+void Bootstrap::setupEspNowStandalone()
+{
+	this->espNowHandler = new ESPNowHandler();
+	this->espNowHandler->injectService(this->mqttService);
+	this->espNowHandler->setup();
 }
 
 void Bootstrap::extractWifiCredentials()

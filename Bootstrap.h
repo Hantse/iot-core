@@ -10,6 +10,8 @@
 #include "CommandHandler.h"
 #include "StoreService.h"
 #include "SleepService.h"
+#include "ESPNowHandler.h"
+
 
 class Bootstrap
 {
@@ -24,6 +26,7 @@ public:
 	void setupTimeToSleep(int timeToSleep);
 	void setup();
 	void setupStandalone();
+	void setupEspNowStandalone();
 	void setModemData(String modemNameInput, String modemInfoInput);
 	void setup(int timeToSleep);
 	void startMainProcess();
@@ -42,6 +45,7 @@ public:
 	LocalServer *localServer;
 	StoreService *storeService;
 	SleepService *sleepService;
+	ESPNowHandler *espNowHandler;
 
 private:
 	void setupWifi();
