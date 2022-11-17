@@ -36,6 +36,8 @@ void LocalServer::injectStoreService(StoreService *storeServiceInjected)
 
 void LocalServer::startServer()
 {
+    Serial.println(ssid);
+
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
     delay(100);

@@ -8,13 +8,16 @@
 #include "CommandHandler.h"
 #include "StoreService.h"
 #include "SleepService.h"
+#include "BatteryHandler.h"
 
 class MqttService
 {
 public:
   MqttService(char *mqttServerInput, char *deviceIdInput);
+  MqttService(char *mqttServerInput, char *deviceIdInput, int portInput);
   void injectStoreService(StoreService *storeServiceInjected, SleepService *sleepServiceInjected);
   void setup();
+  void setModemData(char *modemNameInput, char *modemInfoInput);
   void handleMqttClient();
   static void publishData(char *topicInput);
   static void publishData(char *topicInput, char *dataInput);
@@ -22,6 +25,7 @@ public:
   static void publishData(char *topicInput, String dataInput);
   static void publishData(char *topicInput, float dataInput);
   void setHandler(CommandHandler *handler);
+  void setBatteryHandler(BatteryHandler *handler);
 
 private:
   void sendPing();

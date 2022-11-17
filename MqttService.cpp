@@ -2,6 +2,7 @@
 #include "MqttService.h"
 #include "OtaService.h"
 #include "CommandHandler.h"
+#include "BatteryHandler.h"
 
 #include <ArduinoJson.h>
 #include <WiFi.h>
@@ -14,9 +15,14 @@
 
 static char mqttServer[80];
 static char deviceId[40];
+static char modemName[80];
+static char modemInfo[80];
+static int port = 1883;
+
 static WiFiClient espClient;
 static OtaService otaUpdateService;
 static CommandHandler *commandHandler;
+static BatteryHandler *batteryHandler;
 static esp_chip_info_t chip_info;
 static StoreService *storeService;
 static SleepService *sleepService;
@@ -29,6 +35,14 @@ MqttService::MqttService(char *mqttServerInput, char *deviceIdInput)
 	strcpy(deviceId, deviceIdInput);
 }
 
+MqttService::MqttService(char *mqttServerInput, char *deviceIdInput, int portInput)
+{
+	esp_chip_info(&chip_info);
+	strcpy(mqttServer, mqttServerInput);
+	strcpy(deviceId, deviceIdInput);
+	port = portInput;
+}
+
 void MqttService::injectStoreService(StoreService *storeServiceInjected, SleepService *sleepServiceInjected)
 {
 	storeService = storeServiceInjected;
@@ -39,8 +53,14 @@ void MqttService::setup()
 {
 	mqttClient.setKeepAlive(2);
 	mqttClient.setCallback(callback);
-	mqttClient.setServer(mqttServer, 1883);
+	mqttClient.setServer(mqttServer, port);
 	pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void MqttService::setModemData(char *modemNameInput, char *modemInfoInput)
+{
+	strcpy(modemName, modemNameInput);
+	strcpy(modemInfo, modemInfoInput);
 }
 
 void MqttService::callback(char *topic, byte *message, unsigned int length)
@@ -83,7 +103,7 @@ void MqttService::callback(char *topic, byte *message, unsigned int length)
 void MqttService::handleUpdate(byte *message, unsigned int length)
 {
 	Serial.println("Update trigger, starting process.");
-	sleepService->setCanSleep(false);	
+	sleepService->setCanSleep(false);
 	char json[1024];
 	DynamicJsonDocument jsonDoc(1024);
 	for (int i = 0; i < length; i++)
@@ -109,6 +129,8 @@ void MqttService::handleBoardInformations()
 	doc["features"] = chip_info.features;
 	doc["revision"] = chip_info.revision;
 	doc["spi_flash_size"] = spi_flash_get_chip_size();
+	doc["modemName"] = modemName;
+	doc["modemInfo"] = modemInfo;
 
 	serializeJson(doc, output);
 	publishData("data/board", output);
@@ -117,15 +139,19 @@ void MqttService::handleBoardInformations()
 void MqttService::handleReset()
 {
 	storeService->clearStorage();
+	sleepService->setCanSleep(false);
 	publishData("data/reset", "true");
-	delay(2500);
+	delay(500);
 	ESP.restart();
 }
 
 void MqttService::handleVoltage()
 {
-	int sensorValue = analogRead(13);
-	publishData("data/voltage", sensorValue);
+	if (batteryHandler != NULL)
+	{
+		char* output = batteryHandler->handleCommand();
+		publishData("data/battery", output);
+	}
 }
 
 void MqttService::handleIdentify(byte *message, unsigned int length)
@@ -181,8 +207,14 @@ void MqttService::reconnect()
 
 void MqttService::setHandler(CommandHandler *handler)
 {
-	Serial.println("Set Handler in MQTT");
+	Serial.println("Set LocalCommand Handler in MQTT");
 	commandHandler = handler;
+}
+
+void MqttService::setBatteryHandler(BatteryHandler *handler)
+{
+	Serial.println("Set Battery Handler in MQTT");
+	batteryHandler = handler;
 }
 
 void MqttService::registerToTopic(String topic)

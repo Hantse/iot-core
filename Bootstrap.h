@@ -15,19 +15,26 @@ class Bootstrap
 {
 public:
 	Bootstrap();
+	Bootstrap(char *hostInput, int gsmPin);
 	Bootstrap(char *hostInput, char *mqttServerInput);
 	Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput);
+	Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput, int portInput);
+
 	void setConfiguration(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput);
 	void setupTimeToSleep(int timeToSleep);
 	void setup();
+	void setupStandalone();
+	void setModemData(String modemNameInput, String modemInfoInput);
 	void setup(int timeToSleep);
 	void startMainProcess();
+	void startMainProcessStandalone();
 	void publishData(char *topic);
 	void publishData(char *topic, char *dataInput);
 	void publishData(char *topic, String dataInput);
 	void publishData(char *topic, uint8_t *dataInput);
 	void setHandler(CommandHandler *handler);
 	void startSleep();
+	
 	String getDeviceName();
 	char *getDeviceNameAsChar();
 	TaskHandle_t mainThread;

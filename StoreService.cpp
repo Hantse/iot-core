@@ -19,8 +19,9 @@ bool StoreService::isConfigure()
         EEPROM.writeBool(IS_CONFIGURE_ADDRESS, false);
         EEPROM.commit();
     }
+    String ssidAsString = EEPROM.readString(WIFI_SSID_ADDRESS);
 
-    return isConfigure;
+    return isConfigure && ssidAsString.length() > 0;
 }
 
 void StoreService::storeConfiguration(String wifiSsid, String wifiPassword)

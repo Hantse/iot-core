@@ -8,12 +8,23 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 
+#define TINY_GSM_MODEM_SIM7000
+#define TINY_GSM_RX_BUFFER 1024
+#define SerialAT Serial1
+
 static char ssid[60];
 static char password[60];
 static char host[60];
 static char ip[40];
 static char mqttServer[80];
+static int port = 1883;
+static char apn[80];
+static char gprsUser[80];
+static char gprsPass[80];
 static int sleepTime = 15;
+static int gsmPin = 0;
+static char modemName[80];
+static char modemInfo[80];
 
 static esp_chip_info_t chip_info;
 
@@ -21,6 +32,14 @@ Bootstrap::Bootstrap()
 {
 	Serial.begin(115200);
 	esp_chip_info(&chip_info);
+}
+
+Bootstrap::Bootstrap(char *hostInput, int gsmPinInput)
+{
+	Serial.begin(115200);
+	esp_chip_info(&chip_info);
+	strcpy(host, hostInput);
+	gsmPin = gsmPinInput;
 }
 
 Bootstrap::Bootstrap(char *hostInput, char *mqttServerInput)
@@ -41,12 +60,29 @@ Bootstrap::Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char
 	strcpy(mqttServer, mqttServerInput);
 }
 
+Bootstrap::Bootstrap(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput, int portInput)
+{
+	Serial.begin(115200);
+	esp_chip_info(&chip_info);
+	strcpy(ssid, ssidInput);
+	strcpy(password, passwordInput);
+	strcpy(host, hostInput);
+	strcpy(mqttServer, mqttServerInput);
+	port = portInput;
+}
+
 void Bootstrap::setConfiguration(char *ssidInput, char *passwordInput, char *hostInput, char *mqttServerInput)
 {
 	strcpy(ssid, ssidInput);
 	strcpy(password, passwordInput);
 	strcpy(host, hostInput);
 	strcpy(mqttServer, mqttServerInput);
+}
+
+void Bootstrap::setModemData(String modemNameInput, String modemInfoInput)
+{
+	modemNameInput.toCharArray(modemName, 80);
+	modemInfoInput.toCharArray(modemInfo, 80);
 }
 
 String Bootstrap::getDeviceName()
@@ -72,18 +108,31 @@ void Bootstrap::generateHostname()
 	Serial.println(host);
 }
 
+void Bootstrap::setupStandalone()
+{
+	this->generateHostname();
+	this->sleepService->printWakeupReason();
+	this->storeService = new StoreService();
+	this->sleepService = new SleepService(sleepTime);
+	this->mqttService = new MqttService(mqttServer, host, port);
+	this->mqttService->setModemData(modemName, modemInfo);
+	this->setupWifi();
+	this->mqttService->injectStoreService(storeService, sleepService);
+	this->mqttService->setup();
+}
+
 void Bootstrap::setup()
 {
 	this->generateHostname();
 	this->sleepService->printWakeupReason();
 	this->storeService = new StoreService();
 	this->sleepService = new SleepService(sleepTime);
-	this->localServer = new LocalServer(host, "IOT-DEVICE-DEFAULT", "IotDevicePassword");
+	this->localServer = new LocalServer(host, host, "IotDevicePassword");
 	this->storeService->setup();
 
 	if (this->storeService->isConfigure())
 	{
-		this->mqttService = new MqttService(mqttServer, host);
+		this->mqttService = new MqttService(mqttServer, host, port);
 		this->extractWifiCredentials();
 		this->setupWifi();
 		this->mqttService->injectStoreService(storeService, sleepService);
@@ -91,6 +140,7 @@ void Bootstrap::setup()
 	}
 	else
 	{
+		this->sleepService->setCanSleep(false);
 		this->localServer->injectStoreService(storeService);
 		this->localServer->startServer();
 	}
@@ -99,26 +149,7 @@ void Bootstrap::setup()
 void Bootstrap::setup(int timeToSleep)
 {
 	sleepTime = timeToSleep;
-	this->generateHostname();
-	this->sleepService->printWakeupReason();
-	this->storeService = new StoreService();
-	this->sleepService = new SleepService(sleepTime);
-	this->localServer = new LocalServer(host, "IOT-DEVICE-DEFAULT", "IotDevicePassword");
-	this->storeService->setup();
-
-	if (this->storeService->isConfigure())
-	{
-		this->mqttService = new MqttService(mqttServer, host);
-		this->extractWifiCredentials();
-		this->setupWifi();
-		this->mqttService->injectStoreService(storeService, sleepService);
-		this->mqttService->setup();
-	}
-	else
-	{
-		this->localServer->injectStoreService(storeService);
-		this->localServer->startServer();
-	}
+	this->setup();
 }
 
 void Bootstrap::extractWifiCredentials()
@@ -149,17 +180,22 @@ void Bootstrap::setupWifi()
 	Serial.println(ip);
 }
 
+void Bootstrap::startMainProcessStandalone()
+{
+	xTaskCreatePinnedToCore(this->singleOnboardProcess, "MainThread", 50000, this, 1, &mainThread, 1);
+}
+
 void Bootstrap::startMainProcess()
 {
 	int isConfigure = EEPROM.read(0);
-	if (isConfigure == 1)
-	{
-		xTaskCreatePinnedToCore(this->singleProcess, "MainThread", 50000, this, 1, &mainThread, 1);
-	}
-	else
-	{
-		xTaskCreatePinnedToCore(this->singleOnboardProcess, "MainThread", 50000, this, 1, &mainThread, 1);
-	}
+	// if (isConfigure == 1)
+	// {
+	// 	xTaskCreatePinnedToCore(this->singleProcess, "MainThread", 50000, this, 1, &mainThread, 1);
+	// }
+	// else
+	// {
+	xTaskCreatePinnedToCore(this->singleOnboardProcess, "MainThread", 50000, this, 1, &mainThread, 1);
+	// }
 }
 
 void Bootstrap::singleOnboardProcess(void *pvParameters)
@@ -171,7 +207,8 @@ void Bootstrap::singleOnboardProcess(void *pvParameters)
 	Serial.println("");
 	for (;;)
 	{
-		l_bootstrap->localServer->handleClient();
+		l_bootstrap->mqttService->handleMqttClient();
+		// l_bootstrap->localServer->handleClient();
 		delay(1);
 	}
 }
